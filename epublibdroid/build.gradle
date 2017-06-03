@@ -1,0 +1,58 @@
+apply plugin: 'com.android.library'
+
+ext {
+    bintrayRepo = 'maven'
+    bintrayName = 'epiblib-android'
+
+    publishedGroupId = 'in.nashapp.epublibdroid'
+    libraryName = 'epublibDroid'
+    artifact = 'epublibdroid'
+
+    libraryDescription = 'Android sdk for reading Epub using epublib (http://siegmann.nl/epublib)'
+
+    siteUrl = 'https://github.com/avinashskaranth/epublibDroid'
+    gitUrl = 'https://github.com/avinashskaranth/epublibDroid.git'
+
+    libraryVersion = '0.0.1'
+
+    developerId = 'avinashskaranth'
+    developerName = 'Avinash S Karanth'
+    developerEmail = 'nashapp.mail@gmail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.0"
+
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    testCompile 'junit:junit:4.12'
+    compile files('libs/epublib-core-latest.jar')
+    compile files('libs/slf4j-android-1.6.1-RC1.jar')
+}
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
