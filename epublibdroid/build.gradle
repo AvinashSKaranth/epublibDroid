@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 ext {
     bintrayRepo = 'maven'
-    bintrayName = 'epiblib-android'
+    bintrayName = 'epublib-android'
 
     publishedGroupId = 'in.nashapp.epublibdroid'
     libraryName = 'epublibDroid'
@@ -13,7 +13,7 @@ ext {
     siteUrl = 'https://github.com/avinashskaranth/epublibDroid'
     gitUrl = 'https://github.com/avinashskaranth/epublibDroid.git'
 
-    libraryVersion = '0.0.1'
+    libraryVersion = '0.0.2'
 
     developerId = 'avinashskaranth'
     developerName = 'Avinash S Karanth'

@@ -55,7 +55,6 @@ public class EpubReaderView extends WebView {
         private int ChapterNumber=-1;
         private float Progress;
         private int page_number;
-        private boolean end_warning;
         private float touchX;
         private float touchY;
         private String ResourceLocation="";
@@ -113,19 +112,6 @@ public class EpubReaderView extends WebView {
         super(context, attrs);
         init(context);
     }
-    /*@Override
-    public void onActionModeStarted(android.view.ActionMode mode) {
-        if (mActionMode == null) {
-            mActionMode = mode;
-            //mode.finish();
-            Log.d("EpubReaderTitle",mode.getTitle()+"");
-            Log.d("EpubReaderSubTitle",mode.getSubtitle()+"");
-            Menu menu = mode.getMenu();
-            menu.clear();
-            // Remove the default menu items (select all, copy, paste, search)
-        }
-        super.onActionModeStarted(mode);
-    }*/
     public class SelectActionModeCallback implements android.view.ActionMode.Callback {
         @Override
         public boolean onCreateActionMode(android.view.ActionMode mode, Menu menu) {
@@ -173,15 +159,15 @@ public class EpubReaderView extends WebView {
                     case MotionEvent.ACTION_UP:
                         float x = event.getRawX();
                         float y = event.getRawY();
-                        if (touchX - x > ConvertIntoPixel(50)) {
+                        if (touchX - x > ConvertIntoPixel(100)) {
                             NextPage();
-                        } else if (x - touchX > ConvertIntoPixel(50)) {
+                        } else if (x - touchX > ConvertIntoPixel(100)) {
                             PreviousPage();
                         }
-                        else if (touchY - y  > ConvertIntoPixel(50)) {
+                        else if (touchY - y  > ConvertIntoPixel(100)) {
                             NextPage();
                         }
-                        else if (y - touchY > ConvertIntoPixel(50)) {
+                        else if (y - touchY > ConvertIntoPixel(100)) {
                             PreviousPage();
                         }
                         break;
@@ -193,13 +179,13 @@ public class EpubReaderView extends WebView {
     public int GetTheme(){
         return current_theme;
     }
+
     private void ProcessJavascript(String js,String callbackFunction){
+        Log.d("EpubReader",callbackFunction+" Called");
         if (Build.VERSION.SDK_INT > 19) {
             this.evaluateJavascript("(function(){"+js+"})()", new ValueCallback<String>() {
                 @Override
-                public void onReceiveValue(String value) {
-
-                }
+                public void onReceiveValue(String value) {}
             });
         } else {
             this.loadUrl("javascript:js."+callbackFunction+"("+js+")");
@@ -223,94 +209,6 @@ public class EpubReaderView extends WebView {
                 "elements[i].style.color='white';\n" +
                 "}","changeTheme");
         }
-    }
-    /*public void SetTheme(int theme){
-        if(theme==THEME_LIGHT) {
-            current_theme = THEME_LIGHT;
-            if (Build.VERSION.SDK_INT > 19) {
-                this.evaluateJavascript("(function(){" +
-                        "document.body.style.backgroundColor = 'white';" +
-                        "document.body.style.color = 'black';" +
-                        "})()", new ValueCallback<String>() {
-                    @Override
-                    public void onReceiveValue(String value) {
-                    }
-                });
-            } else {
-                this.loadUrl("javascript:js.changeTheme(" +
-                        "document.body.style.backgroundColor = 'black';" +
-                        "document.body.style.color = 'white';" +
-                        ")");
-            }
-        }else{
-            current_theme = THEME_DARK;
-            if (Build.VERSION.SDK_INT > 19) {
-                this.evaluateJavascript("(function(){" +
-                        "document.body.style.backgroundColor = 'black';" +
-                        "document.body.style.color = 'white';" +
-                        "})()", new ValueCallback<String>() {
-                    @Override
-                    public void onReceiveValue(String value) {}
-                });
-            } else {
-                this.loadUrl("javascript:js.changeTheme(" +
-                "document.body.style.backgroundColor = 'black';" +
-                "document.body.style.color = 'white';" +
-                ")");
-            }
-        }
-    }*/
-    public void ProcessTextSelection() {
-        String js = "\tvar sel = window.getSelection();\n" +
-                "\tvar jsonData ={};\n" +
-                "\tif(!sel.isCollapsed) {\n" +
-                "\t\tvar range = sel.getRangeAt(0);\n" +
-                "\t\tstartNode = range.startContainer;\n" +
-                "\t\tendNode = range.endContainer;\n" +
-                "\t\tjsonData['selectedText'] = range.toString();\n" +
-                "\t\tjsonData['startOffset'] = range.startOffset;  // where the range starts\n" +
-                "\t\tjsonData['endOffset'] = range.endOffset;      // where the range ends\n" +
-                "\t\tjsonData['startNodeData'] = startNode.data;                       // the actual selected text\n" +
-                "\t\tjsonData['startNodeHTML'] = startNode.parentElement.innerHTML;    // parent element innerHTML\n" +
-                "\t\tjsonData['startNodeTagName'] = startNode.parentElement.tagName;   // parent element tag name\n" +
-                "\t\tjsonData['endNodeData'] = endNode.data;                       // the actual selected text\n" +
-                "\t\tjsonData['endNodeHTML'] = endNode.parentElement.innerHTML;    // parent element innerHTML\n" +
-                "\t\tjsonData['endNodeTagName'] = endNode.parentElement.tagName;   // parent element tag name\n" +
-                "\t\tjsonData['status'] = 1;\n" +
-                "\t}else{\n" +
-                "\t\tjsonData['status'] = 0;\n" +
-                "\t}\n" +
-                "\treturn (JSON.stringify(jsonData));";
-        if (Build.VERSION.SDK_INT > 19) {
-            this.evaluateJavascript("(function(){"+js+"})()",
-                    new ValueCallback<String>() {
-                        @Override
-                        public void onReceiveValue(String value) {
-                            Log.v("EpubReader", "SELECTION>19:" + value);
-                            Log.v("EpubReader", "SELECTION_P>19:" +  value.substring(1,value.length()-1).replaceAll("\\\\\"","\""));
-                            Log.v("EpubReader", "SELECTION_P>19:" +  value.substring(1,value.length()-1).replaceAll("\\\\\"","\"").replaceAll("\\\\\\\\\"","\\\\\"").replaceAll("\\\\\\\"","\\\\\"").replaceAll("\\\\\\\\\\\"","\\\\\""));
-                            String text ="";
-                            try {
-                                String parse_json = value.substring(1,value.length()-1).replaceAll("\\\\\"","\"").replaceAll("\\\\\\\\\"","\\\\\"").replaceAll("\\\\\\\"","\\\\\"").replaceAll("\\\\\\\\\\\"","\\\\\"");
-                                JSONObject object = new JSONObject(parse_json);
-                                text = object.getString("selectedText");
-                            }catch(Exception e){e.printStackTrace();}
-                            JSONObject selectedTextJson = new JSONObject();
-                            try {
-                                selectedTextJson.put("DataString",value);
-                                selectedTextJson.put("ChapterNumber",ChapterNumber);
-                                selectedTextJson.put("SelectedText",text);
-                            }catch(Exception e){seletedText="";}
-                            seletedText = selectedTextJson.toString();
-                        }
-                    });
-        } else {
-            this.loadUrl("javascript:js.selection("+js+")");
-            this.addJavascriptInterface(new JavaScriptInterface(), "js");
-        }
-    }
-    public String getSelectedText() {
-        return seletedText;
     }
     public void Annotate(String jsonData,final int selectionMethod,String hashcolor) {
                 String js = "\tvar data = JSON.parse("+jsonData+");\n" +
@@ -363,35 +261,65 @@ public class EpubReaderView extends WebView {
                         js = js+"\tsel.removeAllRanges();\n" +
                                 "\tdocument.designMode = \"off\";\n" +
                                 "\treturn \"{\\\"status\\\":1}\";\n";
-                Log.d("EpubReaderjsonData",jsonData);
-        if (Build.VERSION.SDK_INT > 19) {
-            this.evaluateJavascript("(function(){"+js+"})()",
-                    new ValueCallback<String>() {
-                        @Override
-                        public void onReceiveValue(String value) {
-                            Log.v("EpubReaderAnnotate1", selectionMethod+": " + value);
-                        }
-                    });
-        } else {
-            this.loadUrl("javascript:js.annotate("+js+ ")");
-            this.addJavascriptInterface(new JavaScriptInterface(), "js");
-        }
+                ProcessJavascript(js,"annotate");
+                Log.d("EpubReader","AnnotateCalled");
     }
     public void ExitSelectionMode(){
         mActionMode.finish();
         String js = "window.getSelection().removeAllRanges();";
+        ProcessJavascript(js,"deselect");
+    }
+    public void ProcessTextSelection() {
+        String js = "\tvar sel = window.getSelection();\n" +
+                "\tvar jsonData ={};\n" +
+                "\tif(!sel.isCollapsed) {\n" +
+                "\t\tvar range = sel.getRangeAt(0);\n" +
+                "\t\tstartNode = range.startContainer;\n" +
+                "\t\tendNode = range.endContainer;\n" +
+                "\t\tjsonData['selectedText'] = range.toString();\n" +
+                "\t\tjsonData['startOffset'] = range.startOffset;  // where the range starts\n" +
+                "\t\tjsonData['endOffset'] = range.endOffset;      // where the range ends\n" +
+                "\t\tjsonData['startNodeData'] = startNode.data;                       // the actual selected text\n" +
+                "\t\tjsonData['startNodeHTML'] = startNode.parentElement.innerHTML;    // parent element innerHTML\n" +
+                "\t\tjsonData['startNodeTagName'] = startNode.parentElement.tagName;   // parent element tag name\n" +
+                "\t\tjsonData['endNodeData'] = endNode.data;                       // the actual selected text\n" +
+                "\t\tjsonData['endNodeHTML'] = endNode.parentElement.innerHTML;    // parent element innerHTML\n" +
+                "\t\tjsonData['endNodeTagName'] = endNode.parentElement.tagName;   // parent element tag name\n" +
+                "\t\tjsonData['status'] = 1;\n" +
+                "\t}else{\n" +
+                "\t\tjsonData['status'] = 0;\n" +
+                "\t}\n" +
+                "\treturn (JSON.stringify(jsonData));";
         if (Build.VERSION.SDK_INT > 19) {
             this.evaluateJavascript("(function(){"+js+"})()",
                     new ValueCallback<String>() {
                         @Override
                         public void onReceiveValue(String value) {
-                            Log.v("EpubReader", "Deselect>19");
+                            Log.v("EpubReader", "SELECTION>19:" + value);
+                            Log.v("EpubReader", "SELECTION_P>19:" +  value.substring(1,value.length()-1).replaceAll("\\\\\"","\""));
+                            Log.v("EpubReader", "SELECTION_P>19:" +  value.substring(1,value.length()-1).replaceAll("\\\\\"","\"").replaceAll("\\\\\\\\\"","\\\\\"").replaceAll("\\\\\\\"","\\\\\"").replaceAll("\\\\\\\\\\\"","\\\\\""));
+                            String text ="";
+                            try {
+                                String parse_json = value.substring(1,value.length()-1).replaceAll("\\\\\"","\"").replaceAll("\\\\\\\\\"","\\\\\"").replaceAll("\\\\\\\"","\\\\\"").replaceAll("\\\\\\\\\\\"","\\\\\"");
+                                JSONObject object = new JSONObject(parse_json);
+                                text = object.getString("selectedText");
+                            }catch(Exception e){e.printStackTrace();}
+                            JSONObject selectedTextJson = new JSONObject();
+                            try {
+                                selectedTextJson.put("DataString",value);
+                                selectedTextJson.put("ChapterNumber",ChapterNumber);
+                                selectedTextJson.put("SelectedText",text);
+                            }catch(Exception e){seletedText="";}
+                            seletedText = selectedTextJson.toString();
                         }
                     });
         } else {
-            this.loadUrl("javascript:js.deselect("+js+")");
+            this.loadUrl("javascript:js.selection("+js+")");
             this.addJavascriptInterface(new JavaScriptInterface(), "js");
         }
+    }
+    public String getSelectedText() {
+        return seletedText;
     }
     public class JavaScriptInterface
     {
@@ -417,6 +345,7 @@ public class EpubReaderView extends WebView {
         {
             Log.v("EpubReader","annotate<=19");
         }
+        @JavascriptInterface
         public void deselect()
         {
             Log.v("EpubReader","Deselect<=19");
@@ -479,24 +408,6 @@ public class EpubReaderView extends WebView {
                 ProcessChaptersByTOC(book.getTableOfContents().getTocReferences());
             }else
                 ProcessChaptersBySpline(book.getSpine());
-            //ProcessChaptersByTOC(book.getTableOfContents().getTocReferences());
-            //ProcewssChaptersBySpline(book.getSpine());
-            /*this.setWebViewClient(new WebViewClient() {
-                @SuppressWarnings("deprecation")
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    Log.d("EpubReader","LinkClicked"+url);
-                    listener.OnLinkClicked(url);
-                    return false;
-                }
-                @TargetApi(Build.VERSION_CODES.N)
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request){
-                    Log.d("EpubReader","LinkClicked"+request.getUrl().toString());
-                    listener.OnLinkClicked(request.getUrl().toString());
-                    return false;
-                }
-            });*/
         }catch(Exception e){}
     }
     private static void deleteFiles (File file){
@@ -626,7 +537,6 @@ public class EpubReaderView extends WebView {
                         (page_number - 1) * pageHeight, page_number * pageHeight);
                 anim.setDuration(400);
                 anim.start();
-                end_warning = false;
                 listener.OnPageChangeListener(ChapterNumber, Progress);
                 Log.d("EpubReaderProgress", Progress + " " + pageHeight + " " + this.getScrollY() + " " + TotalHeight);
                 loading = false;
@@ -650,7 +560,6 @@ public class EpubReaderView extends WebView {
                         ((int) ((page_number + 1) * pageHeight)), ((int) (page_number * pageHeight)));
                 anim.setDuration(400);
                 anim.start();
-                end_warning = false;
                 listener.OnPageChangeListener(ChapterNumber, Progress);
                 loading = false;
             } else if (this.getScrollY() > 0) {
@@ -662,7 +571,6 @@ public class EpubReaderView extends WebView {
                         ((int) ((page_number + 1) * pageHeight)), ((int) (page_number * pageHeight)));
                 anim.setDuration(400);
                 anim.start();
-                end_warning = false;
                 listener.OnPageChangeListener(ChapterNumber, Progress);
                 loading = false;
             } else {
@@ -708,7 +616,7 @@ public class EpubReaderView extends WebView {
         Resources r = context.getResources();
         return  Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
     }
-    public void alertDialog(String title,String Message){
+    private void alertDialog(String title,String Message){
         AlertDialog alertDialog = new AlertDialog.Builder(context).create();
         alertDialog.setTitle(title);
         alertDialog.setMessage(Message);
