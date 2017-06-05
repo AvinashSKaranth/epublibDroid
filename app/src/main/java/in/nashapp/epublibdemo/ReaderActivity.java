@@ -323,46 +323,4 @@ public class ReaderActivity extends AppCompatActivity {
             }
         });
     }
-
-    /*public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main_menu, menu);
-        return true;
-    }
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.select_text:
-            WV.ProcessTextSelection();
-            final Handler handler = new Handler();
-            handler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    Toast.makeText(context,WV.getSelectedText(),Toast.LENGTH_LONG).show();
-                }
-            }, 100);
-            break;
-            case R.id.highlight:
-                WV.ProcessTextSelection();
-                final Handler handler1 = new Handler();
-                handler1.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        String selectedText = WV.getSelectedText();
-                        Log.d("EpubReaderSel",selectedText);
-                        try{
-                            JSONObject object = new JSONObject(selectedText);
-                            Toast.makeText(context,object.getString("SelectedText"),Toast.LENGTH_LONG).show();
-                            //Toast.makeText(context,object.getString("DataString"),Toast.LENGTH_LONG).show();
-                            WV.Highlight(object.getString("DataString"));
-                        }catch(Exception e){
-                           e.printStackTrace();
-                        }
-
-                    }
-                }, 100);
-            break;
-        }
-        return super.onOptionsItemSelected(item);
-    }*/
 }
