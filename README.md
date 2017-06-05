@@ -1,5 +1,6 @@
 # epublibDroid
 Android sdk for reading Epub using epublib (http://siegmann.nl/epublib)
+
 [Sample App Code](https://github.com/AvinashSKaranth/epublibDroid/blob/master/app/src/main/java/in/nashapp/epublibdemo/ReaderActivity.java)
 
 # Variables
@@ -13,13 +14,14 @@ Android sdk for reading Epub using epublib (http://siegmann.nl/epublib)
 # EpubReaderListener
 ```java
 EpubReaderView ePubReader = new EpubReaderView(context);
-ePubReader.setEpubReaderListener(new EpubReaderView.EpubReaderListener() {...}
-void OnPageChangeListener(int ChapterNumber,float Progress);
-void OnChapterChangeListener(int ChapterNumber);
-void OnTextSelectionModeChangeListner(Boolean mode);
-void OnLinkClicked(String url);
-void OnBookStartReached();
-void OnBookEndReached();
+ePubReader.setEpubReaderListener(new EpubReaderView.EpubReaderListener() {
+void OnPageChangeListener(int ChapterNumber,float Progress){}
+void OnChapterChangeListener(int ChapterNumber){}
+void OnTextSelectionModeChangeListner(Boolean mode){}
+void OnLinkClicked(String url){}
+void OnBookStartReached(){}
+void OnBookEndReached(){}
+}
 ```
 
 # Functions
