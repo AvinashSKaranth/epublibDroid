@@ -3,12 +3,18 @@ Android sdk for reading Epub using epublib (http://siegmann.nl/epublib)
 
 [Sample App Code](https://github.com/AvinashSKaranth/epublibDroid/blob/master/app/src/main/java/in/nashapp/epublibdemo/ReaderActivity.java)
 
+# Gradle
+
+```
+compile 'in.nashapp.epublibdroid:epublibdroid:0.0.2'
+```
+
 # Variables
 ```java
-    Book book; //epublib book object
-    List<Chapter> ChapterList : Chapter has Name and Content
-    int THEME_LIGHT = 1;
-    int THEME_DARK = 2;
+Book book; //epublib book object
+List<Chapter> ChapterList : Chapter has Name and Content
+int THEME_LIGHT = 1;
+int THEME_DARK = 2;
 ```
 
 # EpubReaderListener
