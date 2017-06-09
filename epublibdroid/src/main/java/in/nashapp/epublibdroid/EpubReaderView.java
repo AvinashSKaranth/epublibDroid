@@ -52,9 +52,9 @@ import nl.siegmann.epublib.service.MediatypeService;
 public class EpubReaderView extends WebView {
         public Book book;
         public ArrayList<Chapter> ChapterList = new ArrayList<Chapter>();
-        private int ChapterNumber=-1;
+        private int ChapterNumber=0;
         private float Progress;
-        private int page_number;
+        private int PageNumber;
         private float touchX;
         private float touchY;
         private String ResourceLocation="";
@@ -73,12 +73,12 @@ public class EpubReaderView extends WebView {
         private int current_theme=1;
         //private CustomActionModeCallback mActionModeCallback;
         public interface EpubReaderListener {
-            void OnPageChangeListener(int ChapterNumber,float Progress);//Working
-            void OnChapterChangeListener(int ChapterNumber);//Working
-            void OnTextSelectionModeChangeListner(Boolean mode);//Working
-            void OnLinkClicked(String url);//Working
-            void OnBookStartReached();//Working
-            void OnBookEndReached();//Working
+            void OnPageChangeListener(int ChapterNumber,int PageNumber,float ProgressStart,float ProgressEnd);
+            void OnChapterChangeListener(int ChapterNumber);
+            void OnTextSelectionModeChangeListner(Boolean mode);
+            void OnLinkClicked(String url);
+            void OnBookStartReached();
+            void OnBookEndReached();
         }
     public void setEpubReaderListener(EpubReaderListener listener) {
         this.listener = listener;
@@ -455,50 +455,45 @@ public class EpubReaderView extends WebView {
         }else{
             Log.d("EpubReader","spline is null");
         }
-
     }
 
     public void GotoPosition(int ChapterNumber,final float Progress){
-        Log.d("EpubReader","Chap"+ChapterNumber+" "+this.ChapterNumber);
-        if(ChapterNumber!=this.ChapterNumber) {
-            if(ChapterNumber<0){
-                this.ChapterNumber = 0;
-                this.Progress = 0;
-            }else if(ChapterNumber>=ChapterList.size()){
-                this.ChapterNumber = ChapterList.size()-1;
-                this.Progress = 1;
-            }else{
-                this.ChapterNumber = ChapterNumber;
-                this.Progress = Progress;
-            }
-            this.loadDataWithBaseURL(ResourceLocation, ChapterList.get(this.ChapterNumber).getContent().replaceAll("href=\"http", "hreflink=\"http").replaceAll("<a href=\"[^\"]*", "<a ").replaceAll("hreflink=\"http", "href=\"http"), "text/html", "utf-8", null);
-            this.setWebViewClient(new WebViewClient() {
-                public void onPageFinished(WebView view, String url) {
-                    SetTheme(current_theme);
-                    final Handler handler = new Handler();
-                    handler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                        int TotalHeight =EpubReaderView.this.GetTotalContentHeight();
-                        Log.d("EpubReaderChap",(int)(TotalHeight*Progress)+" "+TotalHeight+" "+Progress);
-                        EpubReaderView.this.scrollTo(0,(int)(TotalHeight*Progress));
-                        }
-                    },500);
-                }
-                @SuppressWarnings("deprecation")
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, String url) {
-                    listener.OnLinkClicked(url);
-                    return true;
-                }
-                @TargetApi(Build.VERSION_CODES.LOLLIPOP)
-                @Override
-                public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
-                    listener.OnLinkClicked(request.getUrl().toString());
-                    return true;
-                }
-            });
+        if(ChapterNumber<0){
+            this.ChapterNumber = 0;
+            this.Progress = 0;
+        }else if(ChapterNumber>=ChapterList.size()){
+            this.ChapterNumber = ChapterList.size()-1;
+            this.Progress = 1;
+        }else{
+            this.ChapterNumber = ChapterNumber;
+            this.Progress = Progress;
         }
+        this.loadDataWithBaseURL(ResourceLocation, ChapterList.get(this.ChapterNumber).getContent().replaceAll("href=\"http", "hreflink=\"http").replaceAll("<a href=\"[^\"]*", "<a ").replaceAll("hreflink=\"http", "href=\"http"), "text/html", "utf-8", null);
+        this.setWebViewClient(new WebViewClient() {
+            public void onPageFinished(WebView view, String url) {
+                SetTheme(current_theme);
+                final Handler handler = new Handler();
+                handler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                    int TotalHeight =EpubReaderView.this.GetTotalContentHeight();
+                    EpubReaderView.this.scrollTo(0,(int)(TotalHeight*Progress));
+                    }
+                },500);
+            }
+            @SuppressWarnings("deprecation")
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                listener.OnLinkClicked(url);
+                return true;
+            }
+            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                listener.OnLinkClicked(request.getUrl().toString());
+                return true;
+            }
+        });
     }
     public void ListChaptersDialog(int theme){
         try {
@@ -527,17 +522,16 @@ public class EpubReaderView extends WebView {
         if(!loading) {
             int pageHeight = this.getHeight() - 50;
             int TotalHeight = GetTotalContentHeight();
-            Log.d("epubPageNext", TotalHeight + "\t" + this.getScrollY() + "\t" + pageHeight);
             if (TotalHeight > this.getScrollY() + this.getHeight()) {
                 loading = true;
                 Progress = (float) (this.getScrollY() + pageHeight) / TotalHeight;
-                page_number = (int) ((this.getScrollY() + pageHeight) / pageHeight);
-                //this.scrollTo(0, page_number * pageHeight);
+                PageNumber = (int) ((this.getScrollY() + pageHeight) / pageHeight);
+                //this.scrollTo(0, PageNumber * pageHeight);
                 ObjectAnimator anim = ObjectAnimator.ofInt(this, "scrollY",
-                        (page_number - 1) * pageHeight, page_number * pageHeight);
+                        (PageNumber - 1) * pageHeight, PageNumber * pageHeight);
                 anim.setDuration(400);
                 anim.start();
-                listener.OnPageChangeListener(ChapterNumber, Progress);
+                listener.OnPageChangeListener(GetChapterNumber(),GetPageNumber(),this.GetProgressStart(),this.GetProgressEnd());
                 Log.d("EpubReaderProgress", Progress + " " + pageHeight + " " + this.getScrollY() + " " + TotalHeight);
                 loading = false;
             } else {
@@ -554,24 +548,24 @@ public class EpubReaderView extends WebView {
                 loading = true;
                 Progress = (float) (this.getScrollY() - pageHeight) / TotalHeight;
                 Log.d("EpubReaderProgress", Progress + " " + pageHeight + " " + this.getScrollY() + " " + TotalHeight);
-                page_number = ((int) ((this.getScrollY() - pageHeight) / pageHeight));
-                //this.scrollTo(0, ((int) (page_number * pageHeight)));
+                PageNumber = ((int) ((this.getScrollY() - pageHeight) / pageHeight));
+                //this.scrollTo(0, ((int) (PageNumber * pageHeight)));
                 ObjectAnimator anim = ObjectAnimator.ofInt(this, "scrollY",
-                        ((int) ((page_number + 1) * pageHeight)), ((int) (page_number * pageHeight)));
+                        ((int) ((PageNumber + 1) * pageHeight)), ((int) (PageNumber * pageHeight)));
                 anim.setDuration(400);
                 anim.start();
-                listener.OnPageChangeListener(ChapterNumber, Progress);
+                listener.OnPageChangeListener(GetChapterNumber(),GetPageNumber(),this.GetProgressStart(),this.GetProgressEnd());
                 loading = false;
             } else if (this.getScrollY() > 0) {
                 loading = true;
                 Progress = 0;
                 Log.d("EpubReaderProgress", Progress + " " + pageHeight + " " + this.getScrollY() + " " + TotalHeight);
-                page_number = 0;
+                PageNumber = 0;
                 ObjectAnimator anim = ObjectAnimator.ofInt(this, "scrollY",
-                        ((int) ((page_number + 1) * pageHeight)), ((int) (page_number * pageHeight)));
+                        ((int) ((PageNumber + 1) * pageHeight)), ((int) (PageNumber * pageHeight)));
                 anim.setDuration(400);
                 anim.start();
-                listener.OnPageChangeListener(ChapterNumber, Progress);
+                listener.OnPageChangeListener(GetChapterNumber(),GetPageNumber(),this.GetProgressStart(),this.GetProgressEnd());
                 loading = false;
             } else {
                 PreviousChapter();
@@ -583,7 +577,7 @@ public class EpubReaderView extends WebView {
             loading = true;
             GotoPosition(ChapterNumber+1,0);
             listener.OnChapterChangeListener(ChapterNumber);
-            listener.OnPageChangeListener(ChapterNumber,Progress);
+            listener.OnPageChangeListener(GetChapterNumber(),GetPageNumber(),this.GetProgressStart(),this.GetProgressEnd());
             loading = false;
         }else if(ChapterList.size()<=ChapterNumber+1){
             listener.OnBookEndReached();
@@ -594,7 +588,7 @@ public class EpubReaderView extends WebView {
             loading = true;
             GotoPosition(ChapterNumber-1, 1);
             listener.OnChapterChangeListener(ChapterNumber);
-            listener.OnPageChangeListener(ChapterNumber,Progress);
+            listener.OnPageChangeListener(GetChapterNumber(),GetPageNumber(),this.GetProgressStart(),this.GetProgressEnd());
             loading = false;
         }else if(ChapterNumber-1<0){
             listener.OnBookStartReached();
@@ -607,11 +601,21 @@ public class EpubReaderView extends WebView {
     private int GetTotalContentHeight(){
         return (int) (this.getContentHeight() * getResources().getDisplayMetrics().density);
     }
-    public float GetProgress(){ return Progress;
+    public int GetPageHeight(){
+        return this.getHeight() - 50;
+    }
+    public float GetProgressStart(){ return Progress;}
+    public float GetProgressEnd(){
+        if((Progress+(GetPageHeight()/GetTotalContentHeight()))<1)
+            return Progress+(GetPageHeight()/GetTotalContentHeight());
+        else
+            return 1;
     }
     public int GetChapterNumber(){
         return ChapterNumber;
     }
+    public int GetPageNumber(){return PageNumber;}
+
     private int ConvertIntoPixel(int dp){
         Resources r = context.getResources();
         return  Math.round(TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, r.getDisplayMetrics()));
@@ -636,7 +640,7 @@ public class EpubReaderView extends WebView {
     int THEME_DARK = 2;
 
     EpubReaderListener
-        void OnPageChangeListener(int ChapterNumber,float Progress);
+        void OnPageChangeListener(int ChapterNumber,int PageNumber,float ProgressStart,float ProgressEnd);
         void OnChapterChangeListener(int ChapterNumber);
         void OnTextSelectionModeChangeListner(Boolean mode);
         void OnLinkClicked(String url);

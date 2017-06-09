@@ -70,8 +70,8 @@ public class ReaderActivity extends AppCompatActivity {
                 }
             }
             @Override
-            public void OnPageChangeListener(int ChapterNumber, float Progress) {
-                Log.d("EpubReader","PageChange: Chapter:"+ChapterNumber+" Progress:"+Progress);
+            public void OnPageChangeListener(int ChapterNumber,int PageNumber, float ProgressStart,float ProgressEnd) {
+                Log.d("EpubReader","PageChange: Chapter:"+ChapterNumber+" PageNumber:"+PageNumber);
             }
             @Override
             public void OnChapterChangeListener(int ChapterNumber) {
