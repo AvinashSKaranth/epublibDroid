@@ -21,7 +21,7 @@ int THEME_DARK = 2;
 ```java
 EpubReaderView ePubReader = new EpubReaderView(context);
 ePubReader.setEpubReaderListener(new EpubReaderView.EpubReaderListener() {
-void OnPageChangeListener(int ChapterNumber,float Progress){}
+void OnPageChangeListener(int ChapterNumber,int PageNumber,float ProgressStart,float ProgressEnd)
 void OnChapterChangeListener(int ChapterNumber){}
 void OnTextSelectionModeChangeListner(Boolean mode){}
 void OnLinkClicked(String url){}
