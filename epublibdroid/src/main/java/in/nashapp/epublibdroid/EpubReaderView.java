@@ -53,8 +53,8 @@ public class EpubReaderView extends WebView {
         public Book book;
         public ArrayList<Chapter> ChapterList = new ArrayList<Chapter>();
         private int ChapterNumber=0;
-        private float Progress;
-        private int PageNumber;
+        private float Progress = 0;
+        private int PageNumber = 0;
         private float touchX;
         private float touchY;
         private String ResourceLocation="";
@@ -69,9 +69,7 @@ public class EpubReaderView extends WebView {
         public int METHOD_HIGHLIGHT = 1;
         public int METHOD_UNDERLINE = 2;
         public int METHOD_STRIKETHROUGH = 3;
-
-        private int current_theme=1;
-        //private CustomActionModeCallback mActionModeCallback;
+        private int current_theme=1;//Light
         public interface EpubReaderListener {
             void OnPageChangeListener(int ChapterNumber,int PageNumber,float ProgressStart,float ProgressEnd);
             void OnChapterChangeListener(int ChapterNumber);
@@ -90,9 +88,11 @@ public class EpubReaderView extends WebView {
     private class Chapter{
         String name;
         String content;
-        public Chapter(String name, String content) {
+        String href;
+        public Chapter(String name, String content,String href) {
             this.name = name;
             this.content = content;
+            this.href = href;
         }
         public void setName(String name) {
             this.name = name;
@@ -100,12 +100,14 @@ public class EpubReaderView extends WebView {
         public void setContent(String content) {
             this.content = content;
         }
+        public void setHref(String href){this.href = href;}
         public String getName() {
             return name;
         }
         public String getContent() {
             return content;
         }
+        public String getHref(){return href;}
     }
 
     public EpubReaderView(Context context, AttributeSet attrs) {
@@ -402,6 +404,7 @@ public class EpubReaderView extends WebView {
                 ResourceLocation = "file://" + epub_temp_extraction_location + File.separator;
             }
             Log.d("EpubReaderRL",ResourceLocation);
+            ChapterList.clear();
             if(ResourceLocation.contains("OEPBS")&&book.getTableOfContents().getTocReferences().size()>1)
                 ProcessChaptersByTOC(book.getTableOfContents().getTocReferences());
             else if(book.getTableOfContents().getTocReferences().size()>1){
@@ -430,7 +433,7 @@ public class EpubReaderView extends WebView {
                         builder.append(aux);
                     }
                 }catch(Exception e){}
-                ChapterList.add(new Chapter(TOC.getTitle(),builder.toString()));
+                ChapterList.add(new Chapter(TOC.getTitle(),builder.toString(),TOC.getCompleteHref()));
                 if(TOC.getChildren().size()>0){
                     ProcessChaptersByTOC(TOC.getChildren());
                 }
@@ -448,7 +451,7 @@ public class EpubReaderView extends WebView {
                         builder.append(aux);
                     }
                 }catch(Exception e){e.printStackTrace();}
-                ChapterList.add(new Chapter((spine.getResource(i).getTitle()!=null?spine.getResource(i).getTitle():ChapterNumber+""),builder.toString()));
+                ChapterList.add(new Chapter((spine.getResource(i).getTitle()!=null?spine.getResource(i).getTitle():ChapterNumber+""),builder.toString(),spine.getResource(i).getHref()));
                 //Log.d("EpubReaderContent",builder.toString());
                 ChapterNumber++;
             }
@@ -606,10 +609,12 @@ public class EpubReaderView extends WebView {
     }
     public float GetProgressStart(){ return Progress;}
     public float GetProgressEnd(){
-        if((Progress+(GetPageHeight()/GetTotalContentHeight()))<1)
-            return Progress+(GetPageHeight()/GetTotalContentHeight());
-        else
-            return 1;
+            if(GetTotalContentHeight()<=0)
+                return Progress;
+            else if((Progress+(GetPageHeight()/GetTotalContentHeight()))<1)
+                return Progress+(GetPageHeight()/GetTotalContentHeight());
+            else
+                return 1;
     }
     public int GetChapterNumber(){
         return ChapterNumber;
