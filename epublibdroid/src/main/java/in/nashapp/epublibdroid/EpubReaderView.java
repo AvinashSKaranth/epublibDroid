@@ -69,7 +69,7 @@ public class EpubReaderView extends WebView {
         public int METHOD_HIGHLIGHT = 1;
         public int METHOD_UNDERLINE = 2;
         public int METHOD_STRIKETHROUGH = 3;
-        private int current_theme=1;//Light
+        private int current_theme=1; //Light
         public interface EpubReaderListener {
             void OnPageChangeListener(int ChapterNumber,int PageNumber,float ProgressStart,float ProgressEnd);
             void OnChapterChangeListener(int ChapterNumber);
