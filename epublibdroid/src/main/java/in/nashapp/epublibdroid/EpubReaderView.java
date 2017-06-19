@@ -70,6 +70,7 @@ public class EpubReaderView extends WebView {
         public int METHOD_UNDERLINE = 2;
         public int METHOD_STRIKETHROUGH = 3;
         private int current_theme=1; //Light
+        private boolean textSelectionMode = false;
         public interface EpubReaderListener {
             void OnPageChangeListener(int ChapterNumber,int PageNumber,float ProgressStart,float ProgressEnd);
             void OnChapterChangeListener(int ChapterNumber);
@@ -83,6 +84,10 @@ public class EpubReaderView extends WebView {
     }
     public EpubReaderView(Context context) {
         super(context);
+        init(context);
+    }
+    public EpubReaderView(Context context, AttributeSet attrs) {
+        super(context, attrs);
         init(context);
     }
     private class Chapter{
@@ -109,29 +114,26 @@ public class EpubReaderView extends WebView {
         }
         public String getHref(){return href;}
     }
-
-    public EpubReaderView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        init(context);
-    }
     public class SelectActionModeCallback implements android.view.ActionMode.Callback {
         @Override
         public boolean onCreateActionMode(android.view.ActionMode mode, Menu menu) {
             mActionMode = mode;
+            textSelectionMode = true;
             listener.OnTextSelectionModeChangeListner(true);
             return true;
         }
         @Override
         public boolean onPrepareActionMode(android.view.ActionMode mode, Menu menu) {
-            return true;
+            return false;
         }
         @Override
         public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
-            return true;
+            return false;
         }
         @Override
         public void onDestroyActionMode(android.view.ActionMode mode) {
             listener.OnTextSelectionModeChangeListner(false);
+            textSelectionMode = false;
         }
     }
     @Override
@@ -145,15 +147,20 @@ public class EpubReaderView extends WebView {
     }
     private void init(Context context) {
         this.context = context;
-        this.getSettings().setJavaScriptEnabled(true);
         WebSettings settings = this.getSettings();
+        settings.setJavaScriptEnabled(true);
         settings.setDefaultTextEncodingName("UTF-8");
+        if (Build.VERSION.SDK_INT <= 19)
+            this.addJavascriptInterface(new JavaScriptInterface(), "js");
         this.setOnTouchListener(new View.OnTouchListener() {
             public boolean onTouch(View v, MotionEvent event) {
                 int action = event.getAction();
                 switch (action) {
                     case MotionEvent.ACTION_MOVE:
-                        return true;
+                        if(Build.VERSION.SDK_INT <=19&&textSelectionMode)
+                            return false;
+                        else
+                            return true;
                     case MotionEvent.ACTION_DOWN:
                         touchX = event.getRawX();
                         touchY = event.getRawY();
@@ -190,7 +197,7 @@ public class EpubReaderView extends WebView {
                 public void onReceiveValue(String value) {}
             });
         } else {
-            this.loadUrl("javascript:js."+callbackFunction+"("+js+")");
+            this.loadUrl("javascript:js."+callbackFunction+"((function(){"+js+"})())");
         }
     }
     public void SetTheme(int theme){
@@ -213,58 +220,65 @@ public class EpubReaderView extends WebView {
         }
     }
     public void Annotate(String jsonData,final int selectionMethod,String hashcolor) {
-                String js = "\tvar data = JSON.parse("+jsonData+");\n" +
-                        "\tvar selectedText = data['selectedText'];\n" +
-                        "\tvar startOffset = data['startOffset'];\n" +
-                        "\tvar endOffset = data['endOffset'];\n" +
-                        "\tvar startNodeData = data['startNodeData'];\n" +
-                        "\tvar startNodeHTML = data['startNodeHTML'];\n" +
-                        "\tvar startNodeTagName = data['startNodeTagName'];\n" +
-                        "\tvar endNodeData = data['endNodeData'];\n" +
-                        "\tvar endNodeHTML = data['endNodeHTML'];\n" +
-                        "\tvar endNodeTagName = data['endNodeTagName'];\n" +
-                        "    var tagList = document.getElementsByTagName(startNodeTagName);\n" +
-                        "    for (var i = 0; i < tagList.length; i++) {\n" +
-                        "        if (tagList[i].innerHTML == startNodeHTML) {\n" +
-                        "            var startFoundEle = tagList[i];\n" +
-                        "        }\n" +
-                        "    }\n" +
-                        "\tvar nodeList = startFoundEle.childNodes;\n" +
-                        "    for (var i = 0; i < nodeList.length; i++) {\n" +
-                        "        if (nodeList[i].data == startNodeData) {\n" +
-                        "            var startNode = nodeList[i];\n" +
-                        "        }\n" +
-                        "    }\n" +
-                        "\tvar tagList = document.getElementsByTagName(endNodeTagName);\n" +
-                        "    for (var i = 0; i < tagList.length; i++) {\n" +
-                        "        if (tagList[i].innerHTML == endNodeHTML) {\n" +
-                        "            var endFoundEle = tagList[i];\n" +
-                        "        }\n" +
-                        "    }\n" +
-                        "    var nodeList = endFoundEle.childNodes;\n" +
-                        "    for (var i = 0; i < nodeList.length; i++) {\n" +
-                        "        if (nodeList[i].data == endNodeData) {\n" +
-                        "            var endNode = nodeList[i];\n" +
-                        "        }\n" +
-                        "    }\n" +
-                        "    var range = document.createRange();\n" +
-                        "\trange.setStart(startNode, startOffset);\n" +
-                        "    range.setEnd(endNode, endOffset);\n" +
-                        "    var sel = window.getSelection();\n" +
-                        "\tsel.removeAllRanges();\n" +
-                        "\tdocument.designMode = \"on\";\n" +
-                        "\tsel.addRange(range);\n";
-                        if(selectionMethod == METHOD_HIGHLIGHT)
-                            js = js + "\tdocument.execCommand(\"HiliteColor\", false, \""+hashcolor+"\");\n";
-                        if(selectionMethod == METHOD_UNDERLINE)
-                            js = js + "\tdocument.execCommand(\"underline\");\n";
-                        if(selectionMethod == METHOD_STRIKETHROUGH)
-                            js = js + "\tdocument.execCommand(\"strikeThrough\");\n";
-                        js = js+"\tsel.removeAllRanges();\n" +
-                                "\tdocument.designMode = \"off\";\n" +
-                                "\treturn \"{\\\"status\\\":1}\";\n";
+            Log.d("EpubReader","AnnotateCalled");
+            Log.d("Annotate",jsonData);
+            Log.d("Annotate",jsonData.replace("'", "\\'").replace("\"","\\\""));
+            String js ="";
+            if(Build.VERSION.SDK_INT <= 19)
+                js = "\tvar data = JSON.parse('"+jsonData.replace("'", "\\'").replace("\"","\\\"")+"');\n";
+            else
+                js = "\tvar data = JSON.parse("+jsonData+");\n";
+                js = js + "\tvar selectedText = data['selectedText'];\n" +
+                "\tvar startOffset = data['startOffset'];\n" +
+                "\tvar endOffset = data['endOffset'];\n" +
+                "\tvar startNodeData = data['startNodeData'];\n" +
+                "\tvar startNodeHTML = data['startNodeHTML'];\n" +
+                "\tvar startNodeTagName = data['startNodeTagName'];\n" +
+                "\tvar endNodeData = data['endNodeData'];\n" +
+                "\tvar endNodeHTML = data['endNodeHTML'];\n" +
+                "\tvar endNodeTagName = data['endNodeTagName'];\n" +
+                "    var tagList = document.getElementsByTagName(startNodeTagName);\n" +
+                "    for (var i = 0; i < tagList.length; i++) {\n" +
+                "        if (tagList[i].innerHTML == startNodeHTML) {\n" +
+                "            var startFoundEle = tagList[i];\n" +
+                "        }\n" +
+                "    }\n" +
+                "\tvar nodeList = startFoundEle.childNodes;\n" +
+                "    for (var i = 0; i < nodeList.length; i++) {\n" +
+                "        if (nodeList[i].data == startNodeData) {\n" +
+                "            var startNode = nodeList[i];\n" +
+                "        }\n" +
+                "    }\n" +
+                "\tvar tagList = document.getElementsByTagName(endNodeTagName);\n" +
+                "    for (var i = 0; i < tagList.length; i++) {\n" +
+                "        if (tagList[i].innerHTML == endNodeHTML) {\n" +
+                "            var endFoundEle = tagList[i];\n" +
+                "        }\n" +
+                "    }\n" +
+                "    var nodeList = endFoundEle.childNodes;\n" +
+                "    for (var i = 0; i < nodeList.length; i++) {\n" +
+                "        if (nodeList[i].data == endNodeData) {\n" +
+                "            var endNode = nodeList[i];\n" +
+                "        }\n" +
+                "    }\n" +
+                "    var range = document.createRange();\n" +
+                "\trange.setStart(startNode, startOffset);\n" +
+                "    range.setEnd(endNode, endOffset);\n" +
+                "    var sel = window.getSelection();\n" +
+                "\tsel.removeAllRanges();\n" +
+                "\tdocument.designMode = \"on\";\n" +
+                "\tsel.addRange(range);\n";
+                if(selectionMethod == METHOD_HIGHLIGHT)
+                    js = js + "\tdocument.execCommand(\"HiliteColor\", false, \""+hashcolor+"\");\n";
+                if(selectionMethod == METHOD_UNDERLINE)
+                    js = js + "\tdocument.execCommand(\"underline\");\n";
+                if(selectionMethod == METHOD_STRIKETHROUGH)
+                    js = js + "\tdocument.execCommand(\"strikeThrough\");\n";
+                js = js+"\tsel.removeAllRanges();\n" +
+                        "\tdocument.designMode = \"off\";\n" +
+                        "\treturn \"{\\\"status\\\":1}\";\n";
                 ProcessJavascript(js,"annotate");
-                Log.d("EpubReader","AnnotateCalled");
+
     }
     public void ExitSelectionMode(){
         mActionMode.finish();
@@ -316,8 +330,10 @@ public class EpubReaderView extends WebView {
                         }
                     });
         } else {
-            this.loadUrl("javascript:js.selection("+js+")");
-            this.addJavascriptInterface(new JavaScriptInterface(), "js");
+            this.loadUrl("javascript:js.selection((function(){"+js+"})())");
+            //this.loadUrl("javascript:js.selection2((function(){window.getSelection().toString()})())");
+            //this.loadUrl("javascript:js.selection2((function(){document.getSelection().toString()})())");
+            //this.loadUrl("javascript:js.selection2((function(){document.selection.createRange().text})())");
         }
     }
     public String getSelectedText() {
@@ -327,30 +343,38 @@ public class EpubReaderView extends WebView {
     {
         @JavascriptInterface
         public void selection(String value){
-            Log.v("EpubReader", "SelectText<=19:" + value);
+            Log.v("EpubReader", "SELECTION<=19:" + value);
             String text ="";
             try {
-                String parse_json = value.substring(1,value.length()-1).replaceAll("\\\\\\\"","\\\"").replaceAll("\\\"","\"");
+                String parse_json = value;//.substring(1,value.length()-1).replaceAll("\\\\\\\"","\\\"").replaceAll("\\\"","\"");
                 JSONObject object = new JSONObject(parse_json);
-                text = object.getString("selectedText");
+                if(object.has("selectedText"))
+                    text = object.getString("selectedText");
             }catch(Exception e){e.printStackTrace();}
-            JSONObject selectedTextJson = new JSONObject();
-            try {
-                selectedTextJson.put("DataString",value);
-                selectedTextJson.put("ChapterNumber",ChapterNumber);
-                selectedTextJson.put("SelectedText",text);
-            }catch(Exception e){seletedText="";}
-            seletedText = selectedTextJson.toString();
+            if(!text.equals("")) {
+                JSONObject selectedTextJson = new JSONObject();
+                try {
+                    selectedTextJson.put("DataString", value);
+                    selectedTextJson.put("ChapterNumber", ChapterNumber);
+                    selectedTextJson.put("SelectedText", text);
+                } catch (Exception e) {
+                    seletedText = "";
+                }
+                seletedText = selectedTextJson.toString();
+            }
+        }
+        public void selection2(String value){
+            Log.v("EpubReader", "SELECTION2<=19:" + value);
         }
         @JavascriptInterface
-        public void annotate()
+        public void annotate(String response)
         {
-            Log.v("EpubReader","annotate<=19");
+            Log.v("EpubReader","annotate<=19 "+response);
         }
         @JavascriptInterface
-        public void deselect()
+        public void deselect(String response)
         {
-            Log.v("EpubReader","Deselect<=19");
+            Log.v("EpubReader","Deselect<=19 "+response);
         }
     }
     private void DownloadResource(String directory) {
