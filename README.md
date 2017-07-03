@@ -6,7 +6,7 @@ Android sdk for reading Epub using epublib (http://siegmann.nl/epublib)
 # Gradle
 
 ```
-compile 'in.nashapp.epublibdroid:epublibdroid:0.0.3'
+compile 'in.nashapp.epublibdroid:epublibdroid:0.0.5'
 ```
 
 # Variables
