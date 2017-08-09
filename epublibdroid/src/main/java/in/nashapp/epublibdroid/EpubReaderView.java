@@ -137,7 +137,7 @@ public class EpubReaderView extends WebView {
         }
     }
     @Override
-    public android.view.ActionMode startActionMode(android.view.ActionMode.Callback callback) {
+    public android.view.ActionMode startActionMode(android.view.ActionMode.Callback callback,int ModeType) {
         ViewParent parent = getParent();
         if (parent == null) {
             return null;
@@ -190,7 +190,7 @@ public class EpubReaderView extends WebView {
     }
 
     private void ProcessJavascript(String js,String callbackFunction){
-        Log.d("EpubReader",callbackFunction+" Called");
+        //Log.d("EpubReader",callbackFunction+" Called");
         if (Build.VERSION.SDK_INT > 19) {
             this.evaluateJavascript("(function(){"+js+"})()", new ValueCallback<String>() {
                 @Override
@@ -220,9 +220,9 @@ public class EpubReaderView extends WebView {
         }
     }
     public void Annotate(String jsonData,final int selectionMethod,String hashcolor) {
-            Log.d("EpubReader","AnnotateCalled");
-            Log.d("Annotate",jsonData);
-            Log.d("Annotate",jsonData.replace("'", "\\'").replace("\"","\\\""));
+            //Log.d("EpubReader","AnnotateCalled");
+            //Log.d("Annotate",jsonData);
+            //Log.d("Annotate",jsonData.replace("'", "\\'").replace("\"","\\\""));
             String js ="";
             if(Build.VERSION.SDK_INT <= 19)
                 js = "\tvar data = JSON.parse('"+jsonData.replace("'", "\\'").replace("\"","\\\"")+"');\n";
@@ -311,9 +311,9 @@ public class EpubReaderView extends WebView {
                     new ValueCallback<String>() {
                         @Override
                         public void onReceiveValue(String value) {
-                            Log.v("EpubReader", "SELECTION>19:" + value);
-                            Log.v("EpubReader", "SELECTION_P>19:" +  value.substring(1,value.length()-1).replaceAll("\\\\\"","\""));
-                            Log.v("EpubReader", "SELECTION_P>19:" +  value.substring(1,value.length()-1).replaceAll("\\\\\"","\"").replaceAll("\\\\\\\\\"","\\\\\"").replaceAll("\\\\\\\"","\\\\\"").replaceAll("\\\\\\\\\\\"","\\\\\""));
+                            //Log.v("EpubReader", "SELECTION>19:" + value);
+                            //Log.v("EpubReader", "SELECTION_P>19:" +  value.substring(1,value.length()-1).replaceAll("\\\\\"","\""));
+                            //Log.v("EpubReader", "SELECTION_P>19:" +  value.substring(1,value.length()-1).replaceAll("\\\\\"","\"").replaceAll("\\\\\\\\\"","\\\\\"").replaceAll("\\\\\\\"","\\\\\"").replaceAll("\\\\\\\\\\\"","\\\\\""));
                             String text ="";
                             try {
                                 String parse_json = value.substring(1,value.length()-1).replaceAll("\\\\\"","\"").replaceAll("\\\\\\\\\"","\\\\\"").replaceAll("\\\\\\\"","\\\\\"").replaceAll("\\\\\\\\\\\"","\\\\\"");
@@ -343,7 +343,7 @@ public class EpubReaderView extends WebView {
     {
         @JavascriptInterface
         public void selection(String value){
-            Log.v("EpubReader", "SELECTION<=19:" + value);
+            //Log.v("EpubReader", "SELECTION<=19:" + value);
             String text ="";
             try {
                 String parse_json = value;//.substring(1,value.length()-1).replaceAll("\\\\\\\"","\\\"").replaceAll("\\\"","\"");
@@ -364,17 +364,17 @@ public class EpubReaderView extends WebView {
             }
         }
         public void selection2(String value){
-            Log.v("EpubReader", "SELECTION2<=19:" + value);
+            //Log.v("EpubReader", "SELECTION2<=19:" + value);
         }
         @JavascriptInterface
         public void annotate(String response)
         {
-            Log.v("EpubReader","annotate<=19 "+response);
+            //Log.v("EpubReader","annotate<=19 "+response);
         }
         @JavascriptInterface
         public void deselect(String response)
         {
-            Log.v("EpubReader","Deselect<=19 "+response);
+            //Log.v("EpubReader","Deselect<=19 "+response);
         }
     }
     private void DownloadResource(String directory) {
@@ -427,7 +427,7 @@ public class EpubReaderView extends WebView {
             }else {
                 ResourceLocation = "file://" + epub_temp_extraction_location + File.separator;
             }
-            Log.d("EpubReaderRL",ResourceLocation);
+            //Log.d("EpubReaderRL",ResourceLocation);
             ChapterList.clear();
             if(ResourceLocation.contains("OEPBS")&&book.getTableOfContents().getTocReferences().size()>1)
                 ProcessChaptersByTOC(book.getTableOfContents().getTocReferences());
@@ -570,11 +570,11 @@ public class EpubReaderView extends WebView {
         if(!loading) {
             int pageHeight = this.getHeight() - 50;
             int TotalHeight = GetTotalContentHeight();
-            Log.d("epubPagePre", this.getScrollY() + "\t" + pageHeight);
+            //Log.d("epubPagePre", this.getScrollY() + "\t" + pageHeight);
             if (this.getScrollY() - pageHeight >= 0) {
                 loading = true;
                 Progress = (float) (this.getScrollY() - pageHeight) / TotalHeight;
-                Log.d("EpubReaderProgress", Progress + " " + pageHeight + " " + this.getScrollY() + " " + TotalHeight);
+                //Log.d("EpubReaderProgress", Progress + " " + pageHeight + " " + this.getScrollY() + " " + TotalHeight);
                 PageNumber = ((int) ((this.getScrollY() - pageHeight) / pageHeight));
                 //this.scrollTo(0, ((int) (PageNumber * pageHeight)));
                 ObjectAnimator anim = ObjectAnimator.ofInt(this, "scrollY",
@@ -586,7 +586,7 @@ public class EpubReaderView extends WebView {
             } else if (this.getScrollY() > 0) {
                 loading = true;
                 Progress = 0;
-                Log.d("EpubReaderProgress", Progress + " " + pageHeight + " " + this.getScrollY() + " " + TotalHeight);
+                //Log.d("EpubReaderProgress", Progress + " " + pageHeight + " " + this.getScrollY() + " " + TotalHeight);
                 PageNumber = 0;
                 ObjectAnimator anim = ObjectAnimator.ofInt(this, "scrollY",
                         ((int) ((PageNumber + 1) * pageHeight)), ((int) (PageNumber * pageHeight)));
