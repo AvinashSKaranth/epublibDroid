@@ -93,6 +93,11 @@ public class ReaderActivity extends AppCompatActivity {
                 //When user slides next when opened the last page of the book
                 Log.d("EpubReader","EndReached");
             }
+
+            @Override
+            public void OnSingleTap() {
+                Log.d("EpubReader","PageTapped");
+            }
         });
         show_toc.setOnClickListener(new View.OnClickListener() {
             @Override

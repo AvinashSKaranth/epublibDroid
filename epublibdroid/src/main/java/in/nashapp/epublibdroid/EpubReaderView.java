@@ -78,6 +78,7 @@ public class EpubReaderView extends WebView {
             void OnLinkClicked(String url);
             void OnBookStartReached();
             void OnBookEndReached();
+            void OnSingleTap();
         }
     public void setEpubReaderListener(EpubReaderListener listener) {
         this.listener = listener;
@@ -178,6 +179,8 @@ public class EpubReaderView extends WebView {
                         }
                         else if (y - touchY > ConvertIntoPixel(100)) {
                             PreviousPage();
+                        }else if(Math.abs(y - touchY)< ConvertIntoPixel(10)||Math.abs(touchX - x) < ConvertIntoPixel(10)) {
+                            listener.OnSingleTap();
                         }
                         break;
                 }
