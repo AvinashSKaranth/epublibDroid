@@ -91,7 +91,7 @@ public class EpubReaderView extends WebView {
         super(context, attrs);
         init(context);
     }
-    private class Chapter{
+    public class Chapter{
         String name;
         String content;
         String href;
@@ -118,6 +118,7 @@ public class EpubReaderView extends WebView {
     public class SelectActionModeCallback implements android.view.ActionMode.Callback {
         @Override
         public boolean onCreateActionMode(android.view.ActionMode mode, Menu menu) {
+            Log.d("onCreateActionMode","triggered");
             mActionMode = mode;
             textSelectionMode = true;
             listener.OnTextSelectionModeChangeListner(true);
@@ -125,20 +126,24 @@ public class EpubReaderView extends WebView {
         }
         @Override
         public boolean onPrepareActionMode(android.view.ActionMode mode, Menu menu) {
+            Log.d("onPrepareActionMode","triggered");
             return false;
         }
         @Override
         public boolean onActionItemClicked(android.view.ActionMode mode, MenuItem item) {
+            Log.d("onActionItemClicked","triggered");
             return false;
         }
         @Override
         public void onDestroyActionMode(android.view.ActionMode mode) {
+            Log.d("onDestroyActionMode","triggered");
             listener.OnTextSelectionModeChangeListner(false);
             textSelectionMode = false;
         }
     }
     @Override
     public android.view.ActionMode startActionMode(android.view.ActionMode.Callback callback,int ModeType) {
+        Log.d("startActionMode","triggered");
         ViewParent parent = getParent();
         if (parent == null) {
             return null;
@@ -146,6 +151,7 @@ public class EpubReaderView extends WebView {
         actionModeCallback = new SelectActionModeCallback();
         return parent.startActionModeForChild(this, actionModeCallback);
     }
+
     private void init(Context context) {
         this.context = context;
         WebSettings settings = this.getSettings();
@@ -179,9 +185,9 @@ public class EpubReaderView extends WebView {
                         }
                         else if (y - touchY > ConvertIntoPixel(100)) {
                             PreviousPage();
-                        }else if(Math.abs(y - touchY)< ConvertIntoPixel(10)||Math.abs(touchX - x) < ConvertIntoPixel(10)) {
+                        }/*else if(Math.abs(y - touchY)< ConvertIntoPixel(10)||Math.abs(touchX - x) < ConvertIntoPixel(10)) {
                             listener.OnSingleTap();
-                        }
+                        }*/
                         break;
                 }
                 return false;
