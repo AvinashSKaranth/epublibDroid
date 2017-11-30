@@ -142,11 +142,7 @@ public class EpubReaderView extends WebView {
             textSelectionMode = false;
         }
     }
-    /**
-     * For >5.0 Android Version
-     * @param callback
-     * @return
-     */
+    //For >5.0 Android Version
     @Override
     public android.view.ActionMode startActionMode(android.view.ActionMode.Callback callback,int ModeType) {
         Log.d("startActionMode","triggered");
@@ -157,11 +153,7 @@ public class EpubReaderView extends WebView {
         actionModeCallback = new SelectActionModeCallback();
         return parent.startActionModeForChild(this, actionModeCallback);
     }
-    /**
-     * For <=5.0 Android Version
-     * @param callback
-     * @return
-     */
+    //For <=5.0 Android Version
     @Override
     public android.view.ActionMode startActionMode(android.view.ActionMode.Callback callback){
         Log.d("startActionMode","triggered");
