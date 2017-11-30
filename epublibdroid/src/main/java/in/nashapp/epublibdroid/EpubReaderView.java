@@ -57,6 +57,7 @@ public class EpubReaderView extends WebView {
         private int PageNumber = 0;
         private float touchX;
         private float touchY;
+        private float touchTime;
         private String ResourceLocation="";
         private Context context;
         private android.view.ActionMode mActionMode = null;
@@ -141,8 +142,28 @@ public class EpubReaderView extends WebView {
             textSelectionMode = false;
         }
     }
+    /**
+     * For >5.0 Android Version
+     * @param callback
+     * @return
+     */
     @Override
     public android.view.ActionMode startActionMode(android.view.ActionMode.Callback callback,int ModeType) {
+        Log.d("startActionMode","triggered");
+        ViewParent parent = getParent();
+        if (parent == null) {
+            return null;
+        }
+        actionModeCallback = new SelectActionModeCallback();
+        return parent.startActionModeForChild(this, actionModeCallback);
+    }
+    /**
+     * For <=5.0 Android Version
+     * @param callback
+     * @return
+     */
+    @Override
+    public android.view.ActionMode startActionMode(android.view.ActionMode.Callback callback){
         Log.d("startActionMode","triggered");
         ViewParent parent = getParent();
         if (parent == null) {
@@ -171,23 +192,24 @@ public class EpubReaderView extends WebView {
                     case MotionEvent.ACTION_DOWN:
                         touchX = event.getRawX();
                         touchY = event.getRawY();
+                        touchTime = System.currentTimeMillis();
                         break;
                     case MotionEvent.ACTION_UP:
                         float x = event.getRawX();
                         float y = event.getRawY();
-                        if (touchX - x > ConvertIntoPixel(100)) {
+                        if (touchX - x > ConvertIntoPixel(100)&&System.currentTimeMillis()-touchTime<300) {
                             NextPage();
-                        } else if (x - touchX > ConvertIntoPixel(100)) {
+                        } else if (x - touchX > ConvertIntoPixel(100)&&System.currentTimeMillis()-touchTime<300) {
                             PreviousPage();
                         }
-                        else if (touchY - y  > ConvertIntoPixel(100)) {
+                        else if (touchY - y  > ConvertIntoPixel(100)&&System.currentTimeMillis()-touchTime<300) {
                             NextPage();
                         }
-                        else if (y - touchY > ConvertIntoPixel(100)) {
+                        else if (y - touchY > ConvertIntoPixel(100)&&System.currentTimeMillis()-touchTime<300) {
                             PreviousPage();
-                        }/*else if(Math.abs(y - touchY)< ConvertIntoPixel(10)||Math.abs(touchX - x) < ConvertIntoPixel(10)) {
+                        }else if((Math.abs(y - touchY)< ConvertIntoPixel(10)||Math.abs(touchX - x) < ConvertIntoPixel(10))&&System.currentTimeMillis()-touchTime<100) {
                             listener.OnSingleTap();
-                        }*/
+                        }
                         break;
                 }
                 return false;
@@ -376,8 +398,7 @@ public class EpubReaderView extends WebView {
             //Log.v("EpubReader", "SELECTION2<=19:" + value);
         }
         @JavascriptInterface
-        public void annotate(String response)
-        {
+        public void annotate(String response) {
             //Log.v("EpubReader","annotate<=19 "+response);
         }
         @JavascriptInterface
