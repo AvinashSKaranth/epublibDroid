@@ -57,7 +57,7 @@ public class EpubReaderView extends WebView {
         private int PageNumber = 0;
         private float touchX;
         private float touchY;
-        private float touchTime;
+        private long touchTime;
         private String ResourceLocation="";
         private Context context;
         private android.view.ActionMode mActionMode = null;
@@ -189,17 +189,16 @@ public class EpubReaderView extends WebView {
                     case MotionEvent.ACTION_UP:
                         float x = event.getRawX();
                         float y = event.getRawY();
-                        if (touchX - x > ConvertIntoPixel(100)&&System.currentTimeMillis()-touchTime<300) {
+                        if (touchX - x > ConvertIntoPixel(100)&&(System.currentTimeMillis()-touchTime)<300) {
                             NextPage();
-                        } else if (x - touchX > ConvertIntoPixel(100)&&System.currentTimeMillis()-touchTime<300) {
+                        } else if (x - touchX > ConvertIntoPixel(100)&&(System.currentTimeMillis()-touchTime)<300) {
                             PreviousPage();
-                        }
-                        else if (touchY - y  > ConvertIntoPixel(100)&&System.currentTimeMillis()-touchTime<300) {
+                        }else if (touchY - y  > ConvertIntoPixel(100)&&(System.currentTimeMillis()-touchTime)<300) {
                             NextPage();
-                        }
-                        else if (y - touchY > ConvertIntoPixel(100)&&System.currentTimeMillis()-touchTime<300) {
+                        }else if (y - touchY > ConvertIntoPixel(100)&&(System.currentTimeMillis()-touchTime)<300) {
                             PreviousPage();
-                        }else if((Math.abs(y - touchY)< ConvertIntoPixel(10)||Math.abs(touchX - x) < ConvertIntoPixel(10))&&System.currentTimeMillis()-touchTime<100) {
+                        }else if(Math.abs(y - touchY)< ConvertIntoPixel(10)&&Math.abs(touchX - x) < ConvertIntoPixel(10)&&(System.currentTimeMillis()-touchTime)<100) {
+                            Log.d("Tap Details",Math.abs(y - touchY)+" "+Math.abs(touchX - x)+" "+(System.currentTimeMillis()-touchTime));
                             listener.OnSingleTap();
                         }
                         break;
