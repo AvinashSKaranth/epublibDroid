@@ -426,8 +426,9 @@ public class EpubReaderView extends WebView {
         }
     }
     public void OpenEpubFile(String epub_location) {
+        InputStream epubInputStream = null;
         try {
-            InputStream epubInputStream = new BufferedInputStream(new FileInputStream(epub_location));
+            epubInputStream = new BufferedInputStream(new FileInputStream(epub_location));
             this.book = (new EpubReader()).readEpub(epubInputStream);
             String epub_temp_extraction_location = context.getCacheDir() + "/tempfiles";
             deleteFiles(new File(epub_temp_extraction_location));
@@ -456,7 +457,17 @@ public class EpubReaderView extends WebView {
                 ProcessChaptersByTOC(book.getTableOfContents().getTocReferences());
             }else
                 ProcessChaptersBySpline(book.getSpine());
-        }catch(Exception e){}
+        }catch(Exception e){
+
+        } finally {
+          if(epubInputStream !=null) {
+              try {
+                  epubInputStream.close();
+              } catch (IOException e) {
+                  // ignore
+              }
+          }
+        }
     }
     private static void deleteFiles (File file){
         if(file.isDirectory()){
