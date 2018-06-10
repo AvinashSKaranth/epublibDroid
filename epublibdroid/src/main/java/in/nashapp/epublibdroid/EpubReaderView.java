@@ -664,13 +664,13 @@ public class EpubReaderView extends WebView {
         return this.getHeight() - 50;
     }
     public float GetProgressStart(){ return Progress;}
-    public float GetProgressEnd(){
-            if(GetTotalContentHeight()<=0)
-                return Progress;
-            else if((Progress+(GetPageHeight()/GetTotalContentHeight()))<1)
-                return Progress+(GetPageHeight()/GetTotalContentHeight());
-            else
-                return 1;
+    public float GetProgressEnd() {
+        if (GetTotalContentHeight() <= 0)
+            return Progress;
+        else if ((Progress + (GetPageHeight() / GetTotalContentHeight())) < 1)
+            return Progress + ((float) GetPageHeight() / (float) GetTotalContentHeight());
+        else
+            return 1;
     }
     public int GetChapterNumber(){
         return ChapterNumber;
